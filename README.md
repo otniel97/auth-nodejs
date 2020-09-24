@@ -1,8 +1,6 @@
 # auth-nodejs
 API REST Authentication in nodejs
 
-Proyecto para sistema de atención a pacientes diabeticos
-
 configure database credentials in the file located in config/config.json
 
 Install dependencies npm install
