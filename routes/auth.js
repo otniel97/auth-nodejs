@@ -14,6 +14,12 @@ const api = express.Router();
 api.post('/signIn', authController.signIn);
 
 // =================================
+// Google Sign in de usuarios
+// =================================
+api.post('/googleSignIn', authController.googleSignIn);
+
+
+// =================================
 // Cambiar contraseña
 // =================================
 api.put('/changePassword', authMiddleware.authenticate, authController.changePassword);

@@ -16,6 +16,17 @@ async function signIn(req, res) {
     }
 }
 
+//======================================
+// Google Sign in
+//======================================
+async function googleSignIn(req, res) {
+    try {
+        await serviceAuth.googleSignIn(req, res)
+    } catch (error) {
+        errorMsg(res, 500, 'Ha ocurrido un error', error)
+    }
+}
+
 //=================================
 // Cambiar contraseña
 //=================================
@@ -29,5 +40,6 @@ async function changePassword(req, res) {
 
 module.exports = {
     signIn,
+    googleSignIn,
     changePassword
 }

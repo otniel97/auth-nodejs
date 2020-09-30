@@ -5,6 +5,8 @@
 const User = require('../models').User;
 const bcrypt = require('bcryptjs');
 let jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.CLIENT_ID);
 const { Op } = require("sequelize");
 const Role = require('../models').Role;
 const { successMsg, errorMsg } = require('../utils/responses');
@@ -43,13 +45,79 @@ async function signIn(req, res) {
             user.lastLoginAt = new Date();
             await user.save();
 
-            user.token = token;
             successMsg(res, 200, `Inicio de sesión correcto`, token);
         }
 
     } catch (error) {
         console.error(error.toString())
         errorMsg(res, 500, `lo sentimos hemos cometido un error!`, error);
+    }
+}
+
+async function googleSignIn(req, res) {
+    try {
+        let token = req.body.idtoken;
+        let body = req.body;
+
+        let googleUser = await verify(token, res)
+        const userExists = await User.findOne({ where: { email: googleUser.email } })
+
+        if (userExists) {
+            if (!userExists.google)
+                errorMsg(res, 403, `Error, debe autenticarse usando usuario y contraseña!`, error);
+            else {
+                let token = jwt.sign({ user: userExists }, process.env.SEED, { expiresIn: process.env.EXPIRATION_DATE });
+                userExists.lastLoginAt = new Date();
+                await userExists.save();
+                successMsg(res, 200, `Inicio de sesión correcto`, token);
+            }
+        } else {
+            const newUser = {
+                email: googleUser.email,
+                username: googleUser.name,
+                google: googleUser.google,
+                password: bcrypt.hashSync('password', 10),
+                status: body.status || true,
+                roleId: body.roleId || 1,
+                notifications: true
+            }
+
+            const user = await User.create(newUser);
+            let token = jwt.sign({ user: user }, process.env.SEED, { expiresIn: process.env.EXPIRATION_DATE });
+
+            user.lastLoginAt = new Date();
+            await user.save();
+
+            successMsg(res, 200, `Inicio de sesión correcto`, token);
+        }
+
+    } catch (error) {
+        console.error(error.toString())
+        errorMsg(res, 500, `lo sentimos hemos cometido un error!`, error);
+    }
+}
+
+async function verify(token, res) {
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend
+            // Or, if multiple clients access the backend:
+            //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+        });
+        if (ticket) {
+            const payload = ticket.getPayload();
+            return {
+                name: payload.name,
+                email: payload.email,
+                google: true
+            }
+        } else
+            errorMsg(res, 403, `Error, token de acceso de google inválido!`, error);
+
+    } catch (error) {
+        console.error(error.toString())
+        errorMsg(res, 403, `lo sentimos hemos cometido un error!`, error);
     }
 }
 
@@ -94,5 +162,6 @@ async function changePassword(req, res) {
 
 module.exports = {
     signIn,
+    googleSignIn,
     changePassword
 }

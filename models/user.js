@@ -45,6 +45,16 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: true
         },
+        google: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
+            validate: {
+                notEmpty: {
+                    msg: 'La verificación por google no puede estar vacío.'
+                }
+            }
+        },
         status: {
             type: DataTypes.BOOLEAN,
             allowNull: false,

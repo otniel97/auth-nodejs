@@ -119,7 +119,8 @@ async function saveUser(req, res) {
             password: bcrypt.hashSync(body.password, 10),
             status: body.status || true,
             roleId: body.roleId,
-            notifications: true
+            notifications: true,
+            google: body.google || false
         }
         const user = await User.create(newUser);
 

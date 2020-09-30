@@ -15,7 +15,6 @@ module.exports = {
             },
             username: {
                 type: Sequelize.STRING,
-                unique: true,
                 allowNull: false
             },
             password: {
@@ -37,6 +36,11 @@ module.exports = {
             status: {
                 type: Sequelize.BOOLEAN,
                 allowNull: false
+            },
+            google: {
+                type: Sequelize.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
             },
             roleId: {
                 type: Sequelize.INTEGER,
